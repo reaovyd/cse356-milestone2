@@ -1,0 +1,71 @@
+const express = require("express")
+const cors = require("cors")
+const app = express()
+const mongoose = require("mongoose")
+const expressSession = require("express-session")
+const cookieParser = require("cookie-parser")
+const Document = require("./models/DocumentSchema")
+const userRouter = require("./controllers/userRouter")
+const mediaRouter = require("./controllers/mediaRouter")
+const collectionRouter = require("./controllers/collectionRouter")
+const secret = "e3ca82b3a76ca310030e9e0a72d75d6929d08f09ba38700dba4c835e31243a14"
+const ResponseDataDict = require("./responseDataDict")
+const eventStreamRouter = require("./controllers/api")
+const rdd = new ResponseDataDict() // set so we get initial dicts and stuff
+
+
+mongoose.connect("mongodb://127.0.0.1:27017/cse356").then(res => {
+    console.log("Successfully connected to Mongo instance")
+    Document.find({}).then(data => {
+        data.map(elem => {
+            rdd.createNewYdoc(elem._id.toString())
+        })
+    })
+}).catch(err => {
+    console.error("Could not connect to Mongo instance", err.message)
+})
+app.use(async(req, res, next) => {
+    res.setHeader("X-CSE356", "630a8972047a1139b66dbc48")
+    next()
+})
+
+app.use(express.json())
+app.use(cors({
+    credentials: true,
+    origin: true
+}))
+app.use(expressSession({
+    secret: secret, 
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 72 },
+    resave: false
+}))
+app.get("/library/crdt.js", async(req, res) => {
+    res.sendFile(__dirname + "/dist/crdt.js")
+})
+
+app.use("/users", userRouter)
+const tokenMiddleware = async (req, res, next) => {
+    if(!(req.originalUrl.startsWith("/home") || req.originalUrl.startsWith("/edit") || req.originalUrl.startsWith("/api") || req.originalUrl.startsWith("/collection") ||
+    req.originalUrl.startsWith("/media"))){
+        return next()
+    }
+    if(req.session.token) {
+        return next()
+    } else {
+        return res.json({
+            "error" : true,
+            "message": "token does not exist"  
+        })
+    }
+}
+app.use("/", tokenMiddleware, express.static("build"))
+app.use("/edit", tokenMiddleware, express.static("build"))
+app.use("/edit/:id", tokenMiddleware, express.static("build"))
+app.use("/home", tokenMiddleware, express.static("build"))
+
+app.use("/api", tokenMiddleware, eventStreamRouter) 
+app.use("/media", tokenMiddleware, mediaRouter)
+app.use("/collection", tokenMiddleware, collectionRouter)
+
+module.exports = app
