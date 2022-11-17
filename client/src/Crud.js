@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const baseUrl = "http://jasons.cse356.compas.cs.stonybrook.edu"
-// const baseUrl = "http://localhost:8080"
+//const baseUrl = "http://localhost:8080"
 
 const signupPost = async (name, password, email) => {
     const data = {

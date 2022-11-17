@@ -1,4 +1,5 @@
 const yjs = require("yjs")
+const Document = require("./models/DocumentSchema")
 
 class ResponseDataDict {
     constructor() {
@@ -11,9 +12,11 @@ class ResponseDataDict {
         this.user_response_lst = {}
         this.yjs_document_dict = {}
         this.presence_cursor = {}
+        this.yjs_update_array_for_doc = {}
     }
     createNewYdoc(resRoomId) {
         this.yjs_document_dict[resRoomId] = new yjs.Doc()
+        this.yjs_update_array_for_doc[resRoomId] = []
     }
     createNewRoom(resRoomId, email, response) {
         if(this.response_dct_lst[resRoomId] == undefined) {
@@ -32,6 +35,7 @@ class ResponseDataDict {
         if(this.yjs_document_dict[resRoomId] != undefined) {
             this.yjs_document_dict[resRoomId].destroy()
             delete this.yjs_document_dict[resRoomId] 
+            delete this.yjs_update_array_for_doc[resRoomId]
         }
     }
     deleteRoomIdSession(resRoomId) {
@@ -56,6 +60,27 @@ class ResponseDataDict {
             })
         }
         // console.log(this.user_response_lst[email])
+    }
+    async writeToYjsDoc(roomId, update, isUpdate, isUpdateOperation) {
+        if(this.yjs_document_dict[roomId] != undefined) {
+            if(isUpdateOperation) {
+                var update8bit = new Uint8Array(update) 
+                this.yjs_update_array_for_doc[roomId].push(update8bit)
+            }
+            if(isUpdate) {
+                const mergedUpdate = yjs.mergeUpdates(this.yjs_update_array_for_doc[roomId])
+                this.yjs_update_array_for_doc[roomId] = []
+                yjs.applyUpdate(this.yjs_document_dict[roomId], mergedUpdate)
+                await this.writeToDatabase(roomId)
+            }
+        }
+    }
+    async writeToDatabase(roomId) {
+        const updateData = {
+            data : Array.from(yjs.encodeStateAsUpdate(this.yjs_document_dict[roomId])),
+            text: this.yjs_document_dict[roomId].getText("quill").toString()
+        }
+        await Document.findByIdAndUpdate(roomId, updateData, {new: true})
     }
 }
 

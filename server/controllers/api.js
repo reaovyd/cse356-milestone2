@@ -2,6 +2,7 @@ const api = require("express").Router()
 const ResponseDataDict = require("../responseDataDict")
 const yjs = require("yjs")
 const rdd = new ResponseDataDict()
+const k = 250
 
 api.get("/connect/:id", async (req, res) => {
     if(rdd.yjs_document_dict[req.params.id] == undefined) {
@@ -22,10 +23,14 @@ api.get("/connect/:id", async (req, res) => {
         'Cache-Control' : 'no-cache'
     });
     res.flushHeaders()
-
+    // TODO when sync here
+    // send ydoc of course
+    // but we can update to database here
+    // 
     const syncData = {
         data : Array.from(yjs.encodeStateAsUpdate(ydoc))
     }
+    await rdd.writeToYjsDoc(roomId, [], true, false)  
     res.write(`data:${JSON.stringify(syncData)}\nevent:sync`)
     res.write("\n\n")
 
@@ -50,6 +55,9 @@ api.get("/connect/:id", async (req, res) => {
         })
         rdd.user_response_lst[email] = rdd.user_response_lst[email].filter(elem => elem.response !== res) 
         rdd.response_dct_lst[roomId] = rdd.response_dct_lst[roomId].filter(elem => elem.email != email && elem.response !== res) 
+        if(rdd.response_dct_lst[roomId].length == 0) {
+            rdd.writeToYjsDoc(roomId, [], true, false)
+        }
         res.end()
     })
 })
@@ -62,15 +70,19 @@ api.post("/op/:id", async(req, res) => {
             "message" : "missing document id in db"
         })
     }
+    // TODO when hit 'k' writes for that particular ydoc
+    // update the ydoc
     const roomId = req.params.id 
     const ydoc = rdd.yjs_document_dict[roomId]
+    const updateCount = rdd.yjs_update_array_for_doc[roomId].length
 
     const data = req.body.data
     const toSend = {
         data
     }
-    const data8bit = new Uint8Array(data) 
-    yjs.applyUpdate(ydoc, data8bit)
+    await rdd.writeToYjsDoc(roomId, data, updateCount >= k, true)
+    //const data8bit = new Uint8Array(data) 
+    //yjs.applyUpdate(ydoc, data8bit)
     //console.log(data8bit)
     rdd.response_dct_lst[roomId].forEach(elem => {
         const resWrite = elem.response
