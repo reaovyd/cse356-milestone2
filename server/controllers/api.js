@@ -13,6 +13,7 @@ api.get("/connect/:id", async (req, res) => {
     }
     const email = req.session.token
     const roomId = req.params.id
+    rdd.writeToYjsDoc(roomId, [], true, false)  
     const ydoc = rdd.yjs_document_dict[roomId]
     console.log(`Client ${email} connected to ${roomId}`)
     rdd.createNewRoom(roomId, email, res)
@@ -30,7 +31,6 @@ api.get("/connect/:id", async (req, res) => {
     const syncData = {
         data : Array.from(yjs.encodeStateAsUpdate(ydoc))
     }
-    await rdd.writeToYjsDoc(roomId, [], true, false)  
     res.write(`data:${JSON.stringify(syncData)}\nevent:sync`)
     res.write("\n\n")
 

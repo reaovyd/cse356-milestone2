@@ -61,7 +61,7 @@ class ResponseDataDict {
         }
         // console.log(this.user_response_lst[email])
     }
-    async writeToYjsDoc(roomId, update, isUpdate, isUpdateOperation) {
+    writeToYjsDoc(roomId, update, isUpdate, isUpdateOperation) {
         if(this.yjs_document_dict[roomId] != undefined) {
             if(isUpdateOperation) {
                 var update8bit = new Uint8Array(update) 
@@ -71,7 +71,7 @@ class ResponseDataDict {
                 const mergedUpdate = yjs.mergeUpdates(this.yjs_update_array_for_doc[roomId])
                 this.yjs_update_array_for_doc[roomId] = []
                 yjs.applyUpdate(this.yjs_document_dict[roomId], mergedUpdate)
-                await this.writeToDatabase(roomId)
+                this.writeToDatabase(roomId)
             }
         }
     }
