@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-// const mongoosastic = require('mongoosastic')
+const mongoosastic = require('mongoosastic')
 
 
 const documentSchema = new mongoose.Schema({
@@ -12,5 +12,25 @@ const documentSchema = new mongoose.Schema({
     }
 }, {timestamps: true})
 
+documentSchema.plugin(mongoosastic, {
+    forceIndexRefresh: true
+})
 
-module.exports = mongoose.model("documents", documentSchema)
+var Document = mongoose.model("documents", documentSchema)
+
+Document.createMapping({
+    "settings" : {
+        "analysis" : {
+            "analyzer" : {
+                "stemmer_stop_analyzer" : {
+                    "tokenizer" : "whitespace",
+                    "filter" : ["stemmer", "stop"]
+                }
+            }
+        }
+    }
+})
+
+
+
+module.exports = Document

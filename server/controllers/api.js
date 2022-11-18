@@ -80,7 +80,7 @@ api.post("/op/:id", async(req, res) => {
     const toSend = {
         data
     }
-    await rdd.writeToYjsDoc(roomId, data, updateCount >= k, true)
+    rdd.writeToYjsDoc(roomId, data, false, true)
     //const data8bit = new Uint8Array(data) 
     //yjs.applyUpdate(ydoc, data8bit)
     //console.log(data8bit)
