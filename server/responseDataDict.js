@@ -62,9 +62,16 @@ class ResponseDataDict {
         // console.log(this.user_response_lst[email])
     }
     async writeToAllDocs() {
+        // can do a Promise.all() here
         for(let roomId of Object.keys(this.yjs_document_dict)) {
             await this.asyncWriteToYjsDoc(roomId, [], true, false)
         }
+        await Document.bulkWrite(Object.keys(this.yjs_document_dict).map(docId => ({
+            updateOne : {
+                filter : {id : docId},
+                update : {}
+            }
+        })))
     }
     async asyncWriteToYjsDoc(roomId, update, isUpdate, isUpdateOperation) {
         if(this.yjs_document_dict[roomId] != undefined) {
@@ -95,7 +102,7 @@ class ResponseDataDict {
             data : Array.from(yjs.encodeStateAsUpdate(this.yjs_document_dict[roomId])),
             text: this.yjs_document_dict[roomId].getText("quill").toString()
         }
-        await Document.findByIdAndUpdate(roomId, updateData, {new: true})
+        await Document.findOneAndUpdate({_id : roomId}, updateData, {new: true})
     }
 }
 

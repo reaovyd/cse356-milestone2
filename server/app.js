@@ -51,7 +51,7 @@ app.get("/library/crdt.js", async(req, res) => {
 app.use("/users", userRouter)
 const tokenMiddleware = async (req, res, next) => {
     if(!(req.originalUrl.startsWith("/home") || req.originalUrl.startsWith("/edit") || req.originalUrl.startsWith("/api") || req.originalUrl.startsWith("/collection") ||
-    req.originalUrl.startsWith("/media"))){
+    req.originalUrl.startsWith("/media") || req.originalUrl.startsWith("/index"))){
         return next()
     }
     if(req.session.token) {

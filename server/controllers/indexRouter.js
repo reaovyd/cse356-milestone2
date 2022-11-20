@@ -1,6 +1,7 @@
 const api = require("express").Router()
 const Document = require("../models/DocumentSchema")
 const ResponseDataDict= require("../responseDataDict")
+const axios = require("axios")
 const rdd = new ResponseDataDict()
 
 // when doing search/suggest
@@ -14,7 +15,9 @@ api.get("/search", async(req, res)=> {
         })
     }
     await rdd.writeToAllDocs() 
-    await Document.refresh()
+    await axios.post("http://localhost:9200/_refresh")
+    //const data = await axios.get("http://localhost:9200/_search")
+    //console.log(data.data.hits.hits)
     const results = await Document.search({
         query_string: {
             query:req.query.q,
@@ -22,10 +25,14 @@ api.get("/search", async(req, res)=> {
     }, {
         highlight : {
             "fields" : {
-                "text" : {},
-                "name" : {}
+                "text" : {
+                    "fragment_size" : 100
+                },
+                "name" : {
+                    "fragment_size" : 100
+                }
             },
-            "fragment_size" : 10
+             
         },
         sort : {
             "_score": "desc"
@@ -35,13 +42,21 @@ api.get("/search", async(req, res)=> {
     if(results.body.hits.hits.length == 0) {
         return res.json([])
     } else {
-        return res.json(results.body.hits.hits)
+        const ans = results.body.hits.hits.map(elem => {
+            const ret = {
+                docid : elem._id,
+                name : elem._source.name,
+                snippet : elem.highlight.text == undefined ? elem.highlight.name[0] : elem.highlight.text[0]
+            }
+            return ret
+        })
+        return res.json(ans)
     }
-    return res.json({})
 })
 
 api.get("/suggest", async(req, res)=> {
 
+    return res.json({})
 })
 
 module.exports = api 
