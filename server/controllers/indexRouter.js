@@ -55,8 +55,36 @@ api.get("/search", async(req, res)=> {
 })
 
 api.get("/suggest", async(req, res)=> {
+    await rdd.writeToAllDocs() 
+    await axios.post("http://localhost:9200/_refresh")
 
+    // const data = await Document.search({
+    //     match_all: {}
+    //   }, {
+    //     suggest: {
+    //       text_suggest: {
+    //         text: req.query.q,
+    //         completion: {
+    //           field: 'text_suggest'
+    //         }
+    //       }
+    //     }
+    // })
     return res.json({})
+    /*  
+    const data = await Document.search({}, {
+        suggest : {
+            "text-suggest" : {
+                "prefix" : req.query.q,
+                "completion" : {
+                    "field" : "text_suggest"
+                }
+            }
+        }
+    })
+    console.log(data)
+    return res.json({})
+    */
 })
 
 module.exports = api 
