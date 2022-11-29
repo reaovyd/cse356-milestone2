@@ -2,6 +2,7 @@ const api = require("express").Router()
 const Document = require("../models/DocumentSchema")
 const ResponseDataDict= require("../responseDataDict")
 const axios = require("axios")
+const word = require("../models/wordSchema")
 const rdd = new ResponseDataDict()
 
 // when doing search/suggest
@@ -58,18 +59,17 @@ api.get("/suggest", async(req, res)=> {
     await rdd.writeToAllDocs() 
     await axios.post("http://localhost:9200/_refresh")
 
-    // const data = await Document.search({
-    //     match_all: {}
-    //   }, {
-    //     suggest: {
-    //       text_suggest: {
-    //         text: req.query.q,
-    //         completion: {
-    //           field: 'text_suggest'
-    //         }
-    //       }
-    //     }
-    // })
+    const data = await word.search({
+            "suggest": {
+              "word-suggest": {
+                "prefix": req.query.q,
+                "completion": {
+                  "field": "word"
+                }
+              }
+            }
+    })
+    console.log(data)
     return res.json({})
     /*  
     const data = await Document.search({}, {

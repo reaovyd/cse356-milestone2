@@ -1,6 +1,7 @@
 const yjs = require("yjs")
 const Document = require("./models/DocumentSchema")
-
+const word = require("./models/wordSchema")
+const axios = require("axios")
 class ResponseDataDict {
     constructor() {
         if(ResponseDataDict._instance) {
@@ -105,6 +106,14 @@ class ResponseDataDict {
             data : Array.from(yjs.encodeStateAsUpdate(this.yjs_document_dict[roomId])),
             text: this.yjs_document_dict[roomId].getText("quill").toString(),
         }
+        // Jason Z added split the text and push into wordbank  
+        //let words = this.yjs_document_dict[roomId].getText("quill").toString().split(" ")
+        // // restructure 
+        // for (let i = 0; i < words.length ; i++){
+        //     words[i] = {word: words[i]}
+        // }
+        // await word.insertMany(words)
+        await axios.post("http://localhost:9200/_analyze", {"analyzer" : "standard", "text" : this.yjs_document_dict[roomId].getText("quill").toString()}).then(data => {console.log(data)})
         await Document.findOneAndUpdate({_id : roomId}, updateData, {new: true})
     }
 }
