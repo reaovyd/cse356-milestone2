@@ -106,14 +106,26 @@ class ResponseDataDict {
             data : Array.from(yjs.encodeStateAsUpdate(this.yjs_document_dict[roomId])),
             text: this.yjs_document_dict[roomId].getText("quill").toString(),
         }
-        // Jason Z added split the text and push into wordbank  
-        //let words = this.yjs_document_dict[roomId].getText("quill").toString().split(" ")
-        // // restructure 
-        // for (let i = 0; i < words.length ; i++){
-        //     words[i] = {word: words[i]}
-        // }
-        // await word.insertMany(words)
-        await axios.post("http://localhost:9200/_analyze", {"analyzer" : "standard", "text" : this.yjs_document_dict[roomId].getText("quill").toString()}).then(data => {console.log(data)})
+        // Jason Z split the text and push into wordbank 
+	try { 
+        let res = await axios.post("http://localhost:9200/_analyze", {"analyzer" : "standard", "text" : this.yjs_document_dict[roomId].getText("quill").toString()})
+	 let data = res.data.tokens
+	        for (let i of data) {
+                try{
+                 let newWo = new word(i)
+                 await newWo.save()
+                }
+                catch(e){}
+        }
+	}
+	catch(e){console.log("analyze error")}
+	/*for q (let i of data){
+		await word.update({token: i.token}, {
+	  setOnInsert: i
+	 }, {upsert: true})
+	}*/
+	//wait word.insertMany(data, {ordered: false}, function(err, res) {});
+	//await word.insertMany(data, {ordered: false, silent: true})
         await Document.findOneAndUpdate({_id : roomId}, updateData, {new: true})
     }
 }

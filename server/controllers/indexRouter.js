@@ -7,8 +7,9 @@ const rdd = new ResponseDataDict()
 
 // when doing search/suggest
 // we can also write to database here
-
+let map = new Map()
 api.get("/search", async(req, res)=> {
+	console.log("search")
     if(req.query.q == undefined) {
         return res.json({
             error: true,
@@ -16,7 +17,10 @@ api.get("/search", async(req, res)=> {
         })
     }
     await rdd.writeToAllDocs() 
+	try{
     await axios.post("http://localhost:9200/_refresh")
+	}
+	catch(e){console.log("refresh error")}
     //const data = await axios.get("http://localhost:9200/_search")
     //console.log(data.data.hits.hits)
     const results = await Document.search({
@@ -41,8 +45,10 @@ api.get("/search", async(req, res)=> {
         "size": 10,
     })
     if(results.body.hits.hits.length == 0) {
+	console.log("empty")
         return res.json([])
     } else {
+	console.log("sucess")
         const ans = results.body.hits.hits.map(elem => {
             const ret = {
                 docid : elem._id,
@@ -51,26 +57,35 @@ api.get("/search", async(req, res)=> {
             }
             return ret
         })
+	console.log(ans)
         return res.json(ans)
     }
 })
 
 api.get("/suggest", async(req, res)=> {
+    console.log("in Sug")
     await rdd.writeToAllDocs() 
     await axios.post("http://localhost:9200/_refresh")
-
-    const data = await word.search({
-            "suggest": {
-              "word-suggest": {
-                "prefix": req.query.q,
-                "completion": {
-                  "field": "word"
-                }
-              }
+    if (map.has(req.query.q)){
+	res.json(map.get(req.query.q))
+	}
+	else{
+    const results = await word.search({
+        match_all: {}
+      }, {
+        suggest: {
+          wordsuggest: {
+            text: req.query.q,
+            completion: {
+              field: 'token'
             }
-    })
-    console.log(data)
-    return res.json({})
+          }
+        }
+      })
+	let output = results.body.suggest.wordsuggest[0].options.map(a=>a.text)
+	map.set(req.query.q, output)
+    return res.json(output)
+	}
     /*  
     const data = await Document.search({}, {
         suggest : {

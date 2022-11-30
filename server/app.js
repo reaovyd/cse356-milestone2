@@ -49,9 +49,10 @@ app.get("/library/crdt.js", async(req, res) => {
 })
 
 app.use("/users", userRouter)
+//reminder add index back ing
 const tokenMiddleware = async (req, res, next) => {
     if(!(req.originalUrl.startsWith("/home") || req.originalUrl.startsWith("/edit") || req.originalUrl.startsWith("/api") || req.originalUrl.startsWith("/collection") ||
-    req.originalUrl.startsWith("/media") || req.originalUrl.startsWith("/index"))){
+    req.originalUrl.startsWith("/media"))){
         return next()
     }
     if(req.session.token) {

@@ -2,12 +2,13 @@ const api = require("express").Router()
 const User = require("../models/UserSchema")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
-// TODO const { exec } = require("child_process")
+ const { exec } = require("child_process")
 const ResponseDataDict = require("../responseDataDict")
 const rdd = new ResponseDataDict() // set so we get initial dicts and stuff
 
 
 api.post("/signup", async(req, res) => {
+	console.log("in")
     if(!req.body.name || !req.body.email || !req.body.password) {
         return res.json({
             "error" : true,
@@ -22,6 +23,7 @@ api.post("/signup", async(req, res) => {
             "message" : "user has already signed up"
         })
     }
+   console.log("sign")
     const passwordHash = await bcrypt.hash(req.body.password, 10) 
     var newUser = {
         "name" : req.body.name,
@@ -36,8 +38,8 @@ api.post("/signup", async(req, res) => {
         const user = new User(newUser)
         await user.save()
 
-        /*
-        TODO 
+        
+        
         const url = `http://jasons.cse356.compas.cs.stonybrook.edu/users/verify?email=${encodeURIComponent(email)}&key=${key}`
         console.log(`echo \"${url}\" | mail -s \"Verify\" --encoding=quoted-printable ${email}`)
         
@@ -47,18 +49,17 @@ api.post("/signup", async(req, res) => {
                 }
                 console.log(stderr)
         })
+	console.log("done")
 
-
-
-        */
 
 
         return res.json({
-            url : `http://localhost:8080/users/verify?email=${email}&key=${key}`
+           // url : `http://localhost:80/users/verify?email=${email}&key=${key}`
         })
 
-
+A
     } catch(e) {
+	console.log(e)
         return res.json({
             "error" : true,
             "message" : e
@@ -67,6 +68,7 @@ api.post("/signup", async(req, res) => {
 })
 
 api.get("/verify", async(req, res) => {
+	console.log("verify")
     if(!req.query.email || !req.query.key) {
         return res.json({
             "error" : true,
@@ -127,13 +129,13 @@ api.post("/login", async(req, res) => {
             "message" : "user has not activated or invalid pass"
         })
     }
-
+     /*
     if(req.session.token != null || req.session.token != undefined) {
         return res.json({
             error: true,
             "message" : "user is already logged in"
         })
-    }
+    }*/
 
     // const token = jwt.sign(findUser.email, secret)
     req.session.token = findUser.email

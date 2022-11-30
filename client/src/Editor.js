@@ -11,7 +11,7 @@ import Cookies from 'js-cookie'
 Quill.register('modules/cursors', QuillCursors);
 
 // const baseUrl = `http://jasons.cse356.compas.cs.stonybrook.edu`
-const baseUrl = `http://localhost:8080`
+const baseUrl = `http://209.94.58.45:80`
 
 
 const Editor = () => {

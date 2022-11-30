@@ -3,38 +3,19 @@ const mongoosastic = require('mongoosastic')
 
 
 const wordSchema = new mongoose.Schema({
-    word: {
-        type: String, 
-        unique : true,
+    token: {
+        type: String,
+	unique: true,
+	dropDups: true, 
         "es_indexed" : true,
-    },
-
+        "es_type": 'completion',
+       "es_analyzer": 'simple',
+    }
 }, {timestamps: true})
 
-documentSchema.plugin(mongoosastic, {
-    "index": "wordBank",
+wordSchema.plugin(mongoosastic, {
     forceIndexRefresh: true
 })
-var word= mongoose.model("wordBank", wordSchema)
-word.createMapping({
-    "settings" : {
-        "analysis" : {
-            "analyzer" : {
-                "stemmer_stop_analyzer" : {
-                    "tokenizer" : "standard",
-                    "filter" : ["stemmer", "stop"]
-                }
-            }
-        }
-    },
-    "mappings" : {
-        "properties" : {
-            "word" : {
-                "type" : "completion",
-                "analyzer" : "stemmer_stop_analyzer"
-            }
-        }
-    } 
-})
-
+var word= mongoose.model("words", wordSchema)
+word.createMapping()
 module.exports = word

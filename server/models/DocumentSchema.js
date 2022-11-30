@@ -20,29 +20,4 @@ documentSchema.plugin(mongoosastic, {
 })
 
 var Document = mongoose.model("documents", documentSchema)
-Document.createMapping({
-    "settings" : {
-        "analysis" : {
-            "analyzer" : {
-                "stemmer_stop_analyzer" : {
-                    "tokenizer" : "standard",
-                    "filter" : ["stemmer", "stop"]
-                }
-            }
-        }
-    },
-    "mappings" : {
-        "properties" : {
-            "name" : {
-                "type" : "text",
-                "analyzer" : "stemmer_stop_analyzer"
-            },
-            "text" : {
-                "type" : "text",
-                "analyzer" : "stemmer_stop_analyzer"
-            },
-        }
-    } 
-})
-
 module.exports = Document
