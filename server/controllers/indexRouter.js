@@ -1,5 +1,6 @@
 const api = require("express").Router()
 const Document = require("../models/DocumentSchema")
+const Word = require("../models/WordSchema")
 const ResponseDataDict= require("../responseDataDict")
 const axios = require("axios")
 const rdd = new ResponseDataDict()
@@ -55,36 +56,26 @@ api.get("/search", async(req, res)=> {
 })
 
 api.get("/suggest", async(req, res)=> {
+    if(req.query.q == undefined || req.query.q.length < 3) {
+        return res.json([])
+    }
     await rdd.writeToAllDocs() 
     await axios.post("http://localhost:9200/_refresh")
-
-    // const data = await Document.search({
-    //     match_all: {}
-    //   }, {
-    //     suggest: {
-    //       text_suggest: {
-    //         text: req.query.q,
-    //         completion: {
-    //           field: 'text_suggest'
-    //         }
-    //       }
-    //     }
-    // })
-    return res.json({})
-    /*  
-    const data = await Document.search({}, {
-        suggest : {
-            "text-suggest" : {
-                "prefix" : req.query.q,
-                "completion" : {
-                    "field" : "text_suggest"
+    const data = await axios.post("http://localhost:9200/words/_search", {
+        "query": {
+            "match_phrase_prefix": {
+                "word": {
+                    "query": req.query.q
                 }
             }
-        }
+        },
+        "sort" : {"_score" : "desc"}
     })
-    console.log(data)
-    return res.json({})
-    */
+    const ret = data.data.hits.hits.filter(elem => elem._source.word.length >= req.query.q.length + 1).map(elem => {
+        return elem._source.word
+    })
+
+    return res.json(ret)
 })
 
 module.exports = api 

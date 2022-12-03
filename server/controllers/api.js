@@ -2,7 +2,7 @@ const api = require("express").Router()
 const ResponseDataDict = require("../responseDataDict")
 const yjs = require("yjs")
 const rdd = new ResponseDataDict()
-const k = 250
+const CONSTANT_DB_WRITE_K = 250
 
 api.get("/connect/:id", async (req, res) => {
     if(rdd.yjs_document_dict[req.params.id] == undefined) {
@@ -13,7 +13,7 @@ api.get("/connect/:id", async (req, res) => {
     }
     const email = req.session.token
     const roomId = req.params.id
-    rdd.writeToYjsDoc(roomId, [], true, false)  
+    rdd.updateYjsDocMemory(roomId) // TODO  
     const ydoc = rdd.yjs_document_dict[roomId]
     console.log(`Client ${email} connected to ${roomId}`)
     rdd.createNewRoom(roomId, email, res)
@@ -39,7 +39,8 @@ api.get("/connect/:id", async (req, res) => {
         resWrite.write(`data:${JSON.stringify(rdd.presence_cursor[roomId])}\nevent:presence`)
         resWrite.write("\n\n")
     })
-    res.on("close", () => {
+    await rdd.writeToDatabase(roomId)
+    res.on("close", async () => {
         console.log(`Client ${email} disconnected from`, roomId)
 
 
@@ -56,7 +57,9 @@ api.get("/connect/:id", async (req, res) => {
         rdd.user_response_lst[email] = rdd.user_response_lst[email].filter(elem => elem.response !== res) 
         rdd.response_dct_lst[roomId] = rdd.response_dct_lst[roomId].filter(elem => elem.email != email && elem.response !== res) 
         if(rdd.response_dct_lst[roomId].length == 0) {
-            rdd.writeToYjsDoc(roomId, [], true, false)
+            //rdd.writeToYjsDoc(roomId, [], true, false) // TODO
+            rdd.updateYjsDocMemory(roomId)
+            await rdd.writeToDatabase(roomId)
         }
         res.end()
     })
@@ -73,14 +76,15 @@ api.post("/op/:id", async(req, res) => {
     // TODO when hit 'k' writes for that particular ydoc
     // update the ydoc
     const roomId = req.params.id 
-    const ydoc = rdd.yjs_document_dict[roomId]
-    const updateCount = rdd.yjs_update_array_for_doc[roomId].length
+    //const ydoc = rdd.yjs_document_dict[roomId]
+    //const updateCount = rdd.yjs_update_array_for_doc[roomId].length
 
     const data = req.body.data
     const toSend = {
         data
     }
-    rdd.writeToYjsDoc(roomId, data, false, true)
+    rdd.writeToYjsDocMemory(roomId, data)
+    // rdd.writeToYjsDoc(roomId, data, false, true) // TODO 
     //const data8bit = new Uint8Array(data) 
     //yjs.applyUpdate(ydoc, data8bit)
     //console.log(data8bit)
@@ -89,6 +93,12 @@ api.post("/op/:id", async(req, res) => {
         resWrite.write(`data:${JSON.stringify(toSend)}\nevent:update`)
         resWrite.write("\n\n")
     })
+
+
+    if(rdd.yjs_counter[roomId] >= CONSTANT_DB_WRITE_K) {
+        rdd.yjs_counter[roomId] = 0
+        await rdd.writeToDatabase(roomId)
+    }
 
     return res.json({})
 })

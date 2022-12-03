@@ -20,6 +20,7 @@ documentSchema.plugin(mongoosastic, {
 })
 
 var Document = mongoose.model("documents", documentSchema)
+/*
 Document.createMapping({
     "settings" : {
         "analysis" : {
@@ -44,5 +45,5 @@ Document.createMapping({
         }
     } 
 })
-
+*/
 module.exports = Document

@@ -9,6 +9,7 @@ const Document = require("./models/DocumentSchema")
 const userRouter = require("./controllers/userRouter")
 const mediaRouter = require("./controllers/mediaRouter")
 const collectionRouter = require("./controllers/collectionRouter")
+const MongoStore = require("connect-mongo")
 const secret = "e3ca82b3a76ca310030e9e0a72d75d6929d08f09ba38700dba4c835e31243a14"
 const ResponseDataDict = require("./responseDataDict")
 const eventStreamRouter = require("./controllers/api")
@@ -42,7 +43,8 @@ app.use(expressSession({
     secret: secret, 
     saveUninitialized: false,
     cookie: { maxAge: 1000 * 60 * 60 * 72 },
-    resave: false
+    resave: false,
+    store: MongoStore.create({ mongoUrl: 'mongodb://localhost/cse356' })
 }))
 app.get("/library/crdt.js", async(req, res) => {
     res.sendFile(__dirname + "/dist/crdt.js")

@@ -128,12 +128,12 @@ api.post("/login", async(req, res) => {
         })
     }
 
-    if(req.session.token != null || req.session.token != undefined) {
-        return res.json({
-            error: true,
-            "message" : "user is already logged in"
-        })
-    }
+    // if(req.session.token != null || req.session.token != undefined) {
+    //     return res.json({
+    //         error: true,
+    //         "message" : "user is already logged in"
+    //     })
+    // }
 
     // const token = jwt.sign(findUser.email, secret)
     req.session.token = findUser.email
