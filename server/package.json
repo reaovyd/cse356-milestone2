@@ -1,0 +1,39 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:prod": "NODE_ENV=prod node server.js",
+    "dev": "NODE_ENV=dev nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.5.0",
+    "@fastify/cookie": "^8.3.0",
+    "@fastify/express": "^2.2.0",
+    "@fastify/multipart": "^7.3.0",
+    "@fastify/session": "^10.1.0",
+    "@fastify/static": "^6.5.1",
+    "axios": "^1.2.0",
+    "bcrypt": "^5.1.0",
+    "connect-mongo": "^4.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express-session": "^1.17.3",
+    "fastify": "^4.10.2",
+    "fastify-multer": "^2.0.3",
+    "fastify-sse": "^1.0.0",
+    "fastify-sse-v2": "^3.0.0",
+    "mongoose": "^6.7.5",
+    "multer": "^1.4.5-lts.1",
+    "y-mongodb": "^0.1.11",
+    "yjs": "^13.5.43"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
