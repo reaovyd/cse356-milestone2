@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt")
 const crypto = require("crypto")
 const YjsDocSingleton = require("../YjsDocSingleton")
 const yds = new YjsDocSingleton()
-
+const { exec } = require("child_process")
 const signup = async(req, res) => {
     if(!req.body.name || !req.body.email || !req.body.password) {
         return {
@@ -32,8 +32,7 @@ const signup = async(req, res) => {
         const user = new User(newUser)
         await user.save()
 
-        /*
-        TODO 
+        
         const url = `http://jasons.cse356.compas.cs.stonybrook.edu/users/verify?email=${encodeURIComponent(email)}&key=${key}`
         console.log(`echo \"${url}\" | mail -s \"Verify\" --encoding=quoted-printable ${email}`)
         
@@ -43,7 +42,7 @@ const signup = async(req, res) => {
                 }
                 console.log(stderr)
         })
-        */
+      
 
         return {
             url : `http://localhost:8080/users/verify?email=${email}&key=${key}`

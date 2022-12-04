@@ -17,7 +17,11 @@ const uploadFile = async(req, res) => {
 const accessMediaId = async(req, res) => {
     const fileName = path.dirname(__dirname) + `/images/${req.params.mediaid}`
     if(fs.existsSync(fileName)) {
-        return res.sendFile(fileName)
+    	const buffer = fs.readFileSync(fileName)
+	const extName = path.extname(fileName)
+	const type = `image/${extName == "png" ? "png" : extName == "jpg" ? "jpeg" : "gif"}`
+
+        return res.type(type).send(buffer)
     } else {
         return {
             error: true,

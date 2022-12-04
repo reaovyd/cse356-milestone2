@@ -1,4 +1,5 @@
 const fastify = require("fastify")
+const fs = require("fs")
 const mongoose = require("mongoose")
 const cors = require("cors")
 const {FastifySSEPlugin} = require("fastify-sse-v2");
@@ -77,12 +78,13 @@ async function build() {
     //     await diu.writeToAllDocs()
     // }, 3000)
     await app.register(fastifyCookie);
-    await app.register(require('@fastify/express'))
-
+    await app.register(require('@fastify/express'));
     app.use(async(req, res, next) => {
         res.setHeader("X-CSE356", "630a8972047a1139b66dbc48")
         next()
     })
+
+    await app.register(require("@fastify/formbody"))
     app.use(cors({
         credentials: true,
         origin: true
@@ -90,9 +92,9 @@ async function build() {
     await app.register(fastifySession, {
         secret: secret, 
         saveUninitialized: false,
-        cookie: { secure: false , maxAge:1000 * 60 * 60 * 72},
+        cookie: { secure: false , maxAge:1000 * 60 * 60 * 72, httpOnly: false},
         resave: false,
-        store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/cse356' }),
+        store: MongoStore.create({ mongoUrl: 'mongodb://127.0.0.1:27017/cse356' }),
         expires : 1000 * 60 * 60 * 72
     });
     await app.register(FastifySSEPlugin);
@@ -113,6 +115,16 @@ async function build() {
             })
         }
     })
+    async function crdtLocation(req, res) {
+    	const buffer = fs.readFileSync(__dirname + "/dist/crdt.js")
+	res.type("text/javascript").send(buffer)
+    }
+    
+    function libRoute(api, _, done) {
+	api.get("/crdt.js", crdtLocation)
+	done()
+    }
+    app.register(libRoute, {prefix: "library"}) 
     await app.register(fastifyStatic, {
         root: path.join(__dirname, 'build'),
         prefix: '/' // optional: default '/'
@@ -131,7 +143,7 @@ async function build() {
     await app.register(eventRoute, { prefix: "api"})
     await app.register(indexRoute, { prefix: "index"})
 
-    await mongoose.connect("mongodb://localhost:27017/cse356")
+    await mongoose.connect("mongodb://127.0.0.1:27017/cse356")
     console.log("Connected to MongoDB")
     const allDocs = await Document.find({})
     allDocs.forEach(elem => {
@@ -145,32 +157,6 @@ async function build() {
 build()
   .then(fastify => {
         console.log(`Server started on port ${PORT}`)
-        return fastify.listen({ port: PORT})
+        return fastify.listen({ host : "209.94.58.45", port: PORT})
     })
   .catch(console.log)
-// const app = fastify() 
-// app.register(require('@fastify/express'))
-// const cors = require("cors")
-// const MongoStore = require("connect-mongo")
-// const expressSession = require("express-session") 
-
-// mongoose.connect("mongodb://localhost:27017/cse356").then(res => {
-//     console.log("Successfully connected to MongoDB")
-// }).catch(e => {
-//     console.log(e)
-// })
-// 
-// app.use(cors())
-// 
-// app.use(expressSession({
-//     secret: secret, 
-//     saveUninitialized: false,
-//     cookie: { maxAge: 1000 * 60 * 60 * 72 },
-//     resave: false,
-//     store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/cse356' })
-// }))
-
-
-
-
-

@@ -43,13 +43,15 @@ class YjsDocSingleton {
         }
     }
     deleteUser(email) {
-        this.yjs_doc_userlst[email].forEach(elem => {
-            this.deleteUserFromRoom(email, elem.id)
-        })
-        this.yjs_doc_userlst[email].forEach(elem => {
-            elem.req.socket.end()
-        })
-        delete this.yjs_doc_userlst[email]
+	if(this.yjs_doc_userlst[email] != undefined) {
+	    this.yjs_doc_userlst[email].forEach(elem => {
+	        this.deleteUserFromRoom(email, elem.id)
+	    })
+	    this.yjs_doc_userlst[email].forEach(elem => {
+	        elem.req.socket.end()
+	    })
+	    delete this.yjs_doc_userlst[email]
+	}
     }
     createNewYjsDoc(id, name) {
         this.yjs_doc_list[id] = {
