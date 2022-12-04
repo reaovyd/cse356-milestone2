@@ -1,6 +1,6 @@
 const Document = require("./models/DocumentSchema")
 const Y = require("yjs")
-const UPDATE_FACTOR_HP = 50
+// const UPDATE_FACTOR_HP = 50
 
 class YjsDocSingleton {
     constructor() {
@@ -76,7 +76,8 @@ class YjsDocSingleton {
         this.yjs_doc_list[id].latest_presence = presence
     }
     addUserToRoom(id, email, res, req) {
-        this.yjs_doc_list[id].users.push({email, res, req})
+	if(this.yjs_doc_list[id] != undefined)
+            this.yjs_doc_list[id].users.push({email, res, req})
     }
 
     deleteYjsDoc(id) {
@@ -97,24 +98,31 @@ class YjsDocSingleton {
     }
 
     applyUpdate(id) {
-        const updateArray = this.yjs_doc_list[id]["update_array"]
-        Y.applyUpdate(this.yjs_doc_list[id]["yjs_doc"], Y.mergeUpdates(updateArray))
-        this.yjs_doc_list[id]["update_array"] = []
+	if(this.yjs_doc_list[id] != undefined) {
+	    const updateArray = this.yjs_doc_list[id]["update_array"]
+	    Y.applyUpdate(this.yjs_doc_list[id]["yjs_doc"], Y.mergeUpdates(updateArray))
+	    this.yjs_doc_list[id]["update_array"] = []
+	}
     }
 
     insertUpdate(id, updateData) {
-        const updateConvert = new Uint8Array(updateData)
-        const updateArray = this.yjs_doc_list[id]["update_array"]
-        updateArray.push(updateConvert)
-        if(updateArray.length >= UPDATE_FACTOR_HP) {
-            this.applyUpdate(id)
-        }
+	if(this.yjs_doc_list[id] != undefined) {
+	    const updateConvert = new Uint8Array(updateData)
+	    const updateArray = this.yjs_doc_list[id]["update_array"]
+	    updateArray.push(updateConvert)
+	    // if(updateArray.length >= UPDATE_FACTOR_HP) {
+	    //     this.applyUpdate(id)
+	    // }
+	}
     }
     getYjsDocAsUpdate(id) {
-        return Y.encodeStateAsUpdate(this.yjs_doc_list[id].yjs_doc)
+	if(this.yjs_doc_list[id] != undefined)
+            return Y.encodeStateAsUpdate(this.yjs_doc_list[id].yjs_doc)
     }
     initialApplyUpdate(id, initialData) {
-        Y.applyUpdate(this.yjs_doc_list[id].yjs_doc, initialData)
+	if(this.yjs_doc_list[id] != undefined) {
+            Y.applyUpdate(this.yjs_doc_list[id].yjs_doc, initialData)
+	}
     }
 
 }

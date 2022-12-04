@@ -26,6 +26,7 @@ const { client } = require("./ElasticExports")
 const secret = "e3ca82b3a76ca310030e9e0a72d75d6929d08f09ba38700dba4c835e31243a14"
 require("dotenv").config()
 const PORT = process.env.NODE_ENV == "dev" ? process.env.DEV : process.env.PROD 
+const MONGO_INSTANCE = process.env.NODE_ENV == "prod" ? "209.151.154.134" : "127.0.0.1"
 
 async function build() {
     const app = fastify()
@@ -67,7 +68,7 @@ async function build() {
                 "mappings" : {
                     "properties" : {
                         "suggest" : {
-                            "type" : "completion",
+                            "type" : "text",
                         },
                     }
                 }
@@ -80,22 +81,22 @@ async function build() {
     // }, 3000)
     await app.register(fastifyCookie);
     await app.register(require('@fastify/express'));
-    app.register(cors, {
-        credentials: true,
-        origin: true
-    })
     app.use(async(req, res, next) => {
         res.setHeader("X-CSE356", "630a8972047a1139b66dbc48")
         next()
     })
 
     await app.register(require("@fastify/formbody"))
+    await app.register(cors, {
+        credentials: true,
+        origin: true
+    })
     await app.register(fastifySession, {
         secret: secret, 
         saveUninitialized: false,
         cookie: { secure: false , maxAge:1000 * 60 * 60 * 72, httpOnly: false},
         resave: false,
-        store: MongoStore.create({ mongoUrl: 'mongodb://127.0.0.1:27017/cse356' }),
+        store: MongoStore.create({ mongoUrl: `mongodb://${MONGO_INSTANCE}:27017/cse356` }),
         expires : 1000 * 60 * 60 * 72
     });
     await app.register(FastifySSEPlugin);
@@ -104,7 +105,7 @@ async function build() {
 
     app.addHook('preHandler', (req, res, next) => {
         if(!(req.url.startsWith("/home") || req.url.startsWith("/edit") || req.url.startsWith("/api") || req.url.startsWith("/collection") ||
-        req.url.startsWith("/media") || req.url.startsWith("/index"))){
+		req.url.startsWith("/media") || req.url.startsWith("/index"))){
             return next()
         }
         if(req.session.token) {
@@ -144,26 +145,26 @@ async function build() {
     await app.register(eventRoute, { prefix: "api"})
     await app.register(indexRoute, { prefix: "index"})
 
-    await mongoose.connect("mongodb://127.0.0.1:27017/cse356")
+    await mongoose.connect(`mongodb://${MONGO_INSTANCE}:27017/cse356`)
     console.log("Connected to MongoDB")
     return app
 }
 build()
   .then(fastify => {
         console.log(`Server started on port ${PORT}`)
-        process.on(process.env.NODE_ENV=="dev" ? "SIGUSR2" : "SIGINT", (code) => {
-            console.log("UPDATING ALL YJS DOCS TO DATABASES")
-            yds.applyUpdateToAll().then(res => {
-                diu.writeToAllDocs().then(res => {
-                    diu.writeToElastic().then(res => {
-                        diu.writeToElasticSuggest().then(res => {
-                            fastify.close()
-                            process.exit(0)
-                        })
-                    })
-                })      
-            })
-        })
+        // process.on(process.env.NODE_ENV=="dev" ? "SIGUSR2" : "SIGINT", (code) => {
+        //     console.log("UPDATING ALL YJS DOCS TO DATABASES")
+        //     yds.applyUpdateToAll().then(res => {
+        //         diu.writeToAllDocs().then(res => {
+        //             diu.writeToElastic().then(res => {
+        //                 diu.writeToElasticSuggest().then(res => {
+        //                     fastify.close()
+        //                     process.exit(0)
+        //                 })
+        //             })
+        //         })      
+        //     })
+        // })
         return fastify.listen({ host : process.env.NODE_ENV == "dev" ? "127.0.0.1" : "209.94.58.45", port: PORT})
     })
   .catch(console.log)

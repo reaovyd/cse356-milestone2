@@ -32,20 +32,21 @@ const connect = async(req, res) => {
 
     req.socket.on('close', () => {
         console.log(`Client ${req.session.token} has disconnected from ${req.params.id}`)
+	if(yds.yjs_doc_list[id] != undefined) {
+            yds.yjs_doc_list[id].users.forEach(elem => {
+                const resWrite = elem.res
+                const toSend = {
+                    session_id : email,
+                    name: req.session.name,
+                    cursor: {}
+                }
 
-        yds.yjs_doc_list[id].users.forEach(elem => {
-            const resWrite = elem.res
-            const toSend = {
-                session_id : email,
-                name: req.session.name,
-                cursor: {}
-            }
-
-            resWrite.sse({
-                "data" : JSON.stringify(toSend),
-                "event" : "presence"
+                resWrite.sse({
+                    "data" : JSON.stringify(toSend),
+                    "event" : "presence"
+                })
             })
-        })
+	}
         yds.deleteRoomFromUser(email, id)
         yds.deleteUserFromRoom(email, id)
     });

@@ -33,7 +33,7 @@ const signup = async(req, res) => {
         await user.save()
 
         
-        const url = `http://jasons.cse356.compas.cs.stonybrook.edu/users/verify?email=${encodeURIComponent(email)}&key=${key}`
+        const url = `http://209.94.58.45/users/verify?email=${encodeURIComponent(email)}&key=${key}`
         console.log(`echo \"${url}\" | mail -s \"Verify\" --encoding=quoted-printable ${email}`)
         
         exec(`echo \"${url}\" | mail -s \"Verify\" --encoding=quoted-printable ${email}`, function(err, stdout, stderr) {

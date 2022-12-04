@@ -3,7 +3,10 @@ const DatabaseIndexUpdater = require("../DatabaseIndexUpdater")
 const diu = new DatabaseIndexUpdater()
 
 const search = async(req, res) => {
+	console.log("search")
+	console.log(req.query)
     if(req.query.q == undefined || req.query.q.length == 0) {
+	console.log("UNDEFINED UNDEFINED")
         return []
     }
     await diu.writeToElastic()
@@ -30,6 +33,7 @@ const search = async(req, res) => {
         },
         size : 10
     })
+	console.log(results.hits)
     if(results.hits.hits.length == 0) {
         return []
     } else {

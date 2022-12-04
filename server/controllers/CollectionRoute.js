@@ -24,7 +24,7 @@ const create = async(req, res) => {
         }
 
     })
-    await client.indices.refresh({ index: 'documents' })
+    // await client.indices.refresh({ index: 'documents' })
 
     return {
         "id": savedDoc._id.toString() 
@@ -46,7 +46,7 @@ const deleteFunc = async(req, res) => {
             index: "documents",
             id : req.body.id
         })
-        await client.indices.refresh({ index: 'documents' })
+        // await client.indices.refresh({ index: 'documents' })
         yds.deleteYjsDoc(req.body.id)
         // rdd.deleteYdoc(req.body.id)
         // rdd.deleteRoomIdSession(req.body.id)
