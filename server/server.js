@@ -1,7 +1,8 @@
 const fastify = require("fastify")
+const process = require("process")
 const fs = require("fs")
 const mongoose = require("mongoose")
-const cors = require("cors")
+const cors = require("@fastify/cors")
 const {FastifySSEPlugin} = require("fastify-sse-v2");
 const MongoStore = require("connect-mongo")
 const userRoute = require("./controllers/UserRoute.js")
@@ -79,16 +80,16 @@ async function build() {
     // }, 3000)
     await app.register(fastifyCookie);
     await app.register(require('@fastify/express'));
+    app.register(cors, {
+        credentials: true,
+        origin: true
+    })
     app.use(async(req, res, next) => {
         res.setHeader("X-CSE356", "630a8972047a1139b66dbc48")
         next()
     })
 
     await app.register(require("@fastify/formbody"))
-    app.use(cors({
-        credentials: true,
-        origin: true
-    }))
     await app.register(fastifySession, {
         secret: secret, 
         saveUninitialized: false,
@@ -145,18 +146,24 @@ async function build() {
 
     await mongoose.connect("mongodb://127.0.0.1:27017/cse356")
     console.log("Connected to MongoDB")
-    const allDocs = await Document.find({})
-    allDocs.forEach(elem => {
-        yds.createNewYjsDoc(elem._id.toString(), elem.name)
-        if(elem.data.length != 0) {
-            yds.initialApplyUpdate(elem._id.toString(), new Uint8Array(elem.data))
-        }
-    })
     return app
 }
 build()
   .then(fastify => {
         console.log(`Server started on port ${PORT}`)
-        return fastify.listen({ host : "209.94.58.45", port: PORT})
+        process.on(process.env.NODE_ENV=="dev" ? "SIGUSR2" : "SIGINT", (code) => {
+            console.log("UPDATING ALL YJS DOCS TO DATABASES")
+            yds.applyUpdateToAll().then(res => {
+                diu.writeToAllDocs().then(res => {
+                    diu.writeToElastic().then(res => {
+                        diu.writeToElasticSuggest().then(res => {
+                            fastify.close()
+                            process.exit(0)
+                        })
+                    })
+                })      
+            })
+        })
+        return fastify.listen({ host : process.env.NODE_ENV == "dev" ? "127.0.0.1" : "209.94.58.45", port: PORT})
     })
   .catch(console.log)

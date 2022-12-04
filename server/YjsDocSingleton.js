@@ -1,3 +1,4 @@
+const Document = require("./models/DocumentSchema")
 const Y = require("yjs")
 const UPDATE_FACTOR_HP = 50
 
@@ -62,6 +63,15 @@ class YjsDocSingleton {
             "name" : name 
         }
     }
+    async createNewYjsDocWithDBWrite(id) {
+        if(this.yjs_doc_list[id] == undefined) {
+            const doc = await Document.findById(id)
+            this.createNewYjsDoc(id, doc.name)
+            if(doc.data.length != 0) { 
+                this.initialApplyUpdate(doc._id.toString(), new Uint8Array(doc.data))
+            }
+        }
+    }
     updatePresence(id, presence) {
         this.yjs_doc_list[id].latest_presence = presence
     }
@@ -70,13 +80,20 @@ class YjsDocSingleton {
     }
 
     deleteYjsDoc(id) {
-        const yjsDoc = this.yjs_doc_list[id]["yjs_doc"]
-        this.yjs_doc_list[id]["users"].forEach(elem => {
-            this.deleteUserFromRoom(elem.email, id)
-            elem.req.socket.end()
+        if(this.yjs_doc_list[id] != undefined) {
+            const yjsDoc = this.yjs_doc_list[id]["yjs_doc"]
+            this.yjs_doc_list[id]["users"].forEach(elem => {
+                this.deleteUserFromRoom(elem.email, id)
+                elem.req.socket.end()
+            })
+            yjsDoc.destroy()
+            delete this.yjs_doc_list[id]
+        }
+    }
+    async applyUpdateToAll() {
+        Object.keys(this.yjs_doc_list).map(key => {
+            this.applyUpdate(key)
         })
-        yjsDoc.destroy()
-        delete this.yjs_doc_list[id]
     }
 
     applyUpdate(id) {

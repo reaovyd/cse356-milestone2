@@ -1,5 +1,6 @@
 const Document = require("../models/DocumentSchema")
 const YjsDocSingleton = require("../YjsDocSingleton")
+const { client } = require("../ElasticExports")
 const yds = new YjsDocSingleton()
 
 const create = async(req, res) => {
@@ -13,7 +14,17 @@ const create = async(req, res) => {
         name : req.body.name
     })
     const savedDoc = await newDoc.save()
-    yds.createNewYjsDoc(savedDoc._id.toString(), savedDoc.name)
+    await client.index({
+        "index" : "documents",
+        "id" : savedDoc._id.toString(),
+        "document" : {
+            "id" : savedDoc._id.toString(),
+            text : "",
+            name : savedDoc.name 
+        }
+
+    })
+    await client.indices.refresh({ index: 'documents' })
 
     return {
         "id": savedDoc._id.toString() 
@@ -31,6 +42,11 @@ const deleteFunc = async(req, res) => {
         if(findDoc == null || findDoc == undefined) {
             throw new Error("missing doc")
         }
+        await client.delete({
+            index: "documents",
+            id : req.body.id
+        })
+        await client.indices.refresh({ index: 'documents' })
         yds.deleteYjsDoc(req.body.id)
         // rdd.deleteYdoc(req.body.id)
         // rdd.deleteRoomIdSession(req.body.id)

@@ -8,6 +8,7 @@ const connect = async(req, res) => {
     console.log(`Client ${req.session.token} has connected to ${req.params.id}`)
     const email = req.session.token
     const id = req.params.id
+    await yds.createNewYjsDocWithDBWrite(id) 
     yds.createUser(email)
     yds.addRoomToUser(email, res, id, req)
     yds.addUserToRoom(id, email, res, req)
