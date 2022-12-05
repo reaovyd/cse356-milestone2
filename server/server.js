@@ -158,7 +158,8 @@ build()
         console.log(`Server started on port ${PORT}`)
 	setInterval(() => {
             diu.writeToElastic()
-        }, 1000) 
+	    diu.writeToElasticSuggest()
+        }, 250) 
 
         return fastify.listen({ host : process.env.NODE_ENV == "dev" ? "127.0.0.1" : "209.94.58.45", port: PORT})
     })

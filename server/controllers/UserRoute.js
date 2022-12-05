@@ -34,7 +34,7 @@ const signup = async(req, res) => {
         await user.save()
 
         
-        const url = `http://209.94.58.45/users/verify?email=${encodeURIComponent(email)}&key=${key}`
+        const url = `http://209.151.148.173/users/verify?email=${encodeURIComponent(email)}&key=${key}` 
         console.log(`echo \"${url}\" | mail -s \"Verify\" --encoding=quoted-printable ${email}`)
         
         exec(`echo \"${url}\" | mail -s \"Verify\" --encoding=quoted-printable ${email}`, function(err, stdout, stderr) {

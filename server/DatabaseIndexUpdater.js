@@ -41,8 +41,8 @@ class DatabaseIndexUpdater {
     async writeToElasticSuggest() {
         const dataset = Object.keys(yds.yjs_doc_list).map((key) => {
             yds.applyUpdate(key)
-            const text = yds.yjs_doc_list[key].yjs_doc.getText("quill").toString().split(/(\s+|\r?\n)/)
-            return {
+            const text = yds.yjs_doc_list[key].yjs_doc.getText("quill").toString().split(/(\s+|\r?\n)/).filter(elem => elem.match(/[A-Za-z]+/))
+	    return {
                 "suggest" : text 
             }
         })
