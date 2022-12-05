@@ -23,28 +23,36 @@ const connect = async(req, res) => {
     })
 
     yds.yjs_doc_list[id].users.forEach(elem => {
-        const resWrite = elem.res
-        resWrite.sse({
-            "data" : JSON.stringify(yds.yjs_doc_list[id].latest_presence),
-            "event" : "presence"
-        })
+	try {
+            const resWrite = elem.res
+            resWrite.sse({
+                "data" : JSON.stringify(yds.yjs_doc_list[id].latest_presence),
+                "event" : "presence"
+            })
+	} catch(err) {
+	    console.log("problem")
+	}
     })
 
     req.socket.on('close', () => {
         console.log(`Client ${req.session.token} has disconnected from ${req.params.id}`)
 	if(yds.yjs_doc_list[id] != undefined) {
             yds.yjs_doc_list[id].users.forEach(elem => {
-                const resWrite = elem.res
-                const toSend = {
-                    session_id : email,
-                    name: req.session.name,
-                    cursor: {}
-                }
+		try {
+                    const resWrite = elem.res
+                    const toSend = {
+                        session_id : email,
+                        name: req.session.name,
+                        cursor: {}
+                    }
 
-                resWrite.sse({
-                    "data" : JSON.stringify(toSend),
-                    "event" : "presence"
-                })
+                    resWrite.sse({
+                        "data" : JSON.stringify(toSend),
+                        "event" : "presence"
+                    })
+		} catch(err) {
+		    console.log("problem")
+		}
             })
 	}
         yds.deleteRoomFromUser(email, id)
@@ -67,11 +75,15 @@ const update = async(req, res) => {
     }
     yds.insertUpdate(roomId, data)
     yds.yjs_doc_list[roomId].users.forEach(elem => {
-        const resWrite = elem.res
-        resWrite.sse({
-            "data" : JSON.stringify(toSend),
-            "event" : "update"
-        })
+	try {
+            const resWrite = elem.res
+            resWrite.sse({
+                "data" : JSON.stringify(toSend),
+                "event" : "update"
+            })
+	} catch(err) {
+	    console.log("problem")
+	}
     })
     return {}
 }

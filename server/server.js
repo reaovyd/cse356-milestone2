@@ -99,7 +99,7 @@ async function build() {
         saveUninitialized: false,
         cookie: { secure: false , maxAge:1000 * 60 * 60 * 72, httpOnly: false},
         resave: false,
-        store: MongoStore.create({ mongoUrl: `mongodb://${MONGO_INSTANCE}:27017/cse356` }),
+        //store: MongoStore.create({ mongoUrl: `mongodb://${MONGO_INSTANCE}:27017/cse356` }),
         expires : 1000 * 60 * 60 * 72
     });
     await app.register(FastifySSEPlugin);
@@ -125,9 +125,21 @@ async function build() {
     	const buffer = fs.readFileSync(__dirname + "/dist/crdt.js")
 	res.type("text/javascript").send(buffer)
     }
+    async function syncSearch(req, res) {
+	console.log("SYNC SEARCH")
+	await diu.writeToElastic()
+        return {} 
+    }
+    async function syncSuggest(req, res) {
+	console.log("SYNC SUGGEST")
+	await diu.writeToElasticSuggest()
+	return {}
+    }
     
     function libRoute(api, _, done) {
 	api.get("/crdt.js", crdtLocation)
+	api.get("/syncSearch", syncSearch)
+	api.get("/syncSuggest", syncSuggest)
 	done()
     }
     app.register(libRoute, {prefix: "library"}) 
@@ -156,11 +168,6 @@ async function build() {
 build()
   .then(fastify => {
         console.log(`Server started on port ${PORT}`)
-	setInterval(() => {
-            diu.writeToElastic()
-	    diu.writeToElasticSuggest()
-        }, 250) 
-
         return fastify.listen({ host : process.env.NODE_ENV == "dev" ? "127.0.0.1" : "209.94.58.45", port: PORT})
     })
   .catch(console.log)
