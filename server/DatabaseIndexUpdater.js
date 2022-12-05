@@ -41,21 +41,20 @@ class DatabaseIndexUpdater {
     async writeToElasticSuggest() {
         const dataset = Object.keys(yds.yjs_doc_list).map((key) => {
             yds.applyUpdate(key)
-            const text = yds.yjs_doc_list[key].yjs_doc.getText("quill").toString().split(/(\s+|\r?\n)/).filter(elem => elem.match(/\w+/)).map(elem => {
-                return {
-                    "suggest" : elem
-                }
-            })
-            return text
-        })
-        const operations = []
-        for(let data of dataset) {
-            for(let suggest of data) {
-                operations.push({index : {_index : "words"}})
-                operations.push(suggest)
+            const text = yds.yjs_doc_list[key].yjs_doc.getText("quill").toString().split(/(\s+|\r?\n)/)
+            return {
+                "suggest" : text 
             }
-        }
-        
+        })
+        // const operations = []
+        // for(let data of dataset) {
+        //     for(let suggest of data) {
+        //         operations.push({index : {_index : "words"}})
+        //         operations.push(suggest)
+        //     }
+        // }
+        const operations = dataset.flatMap(doc => [{ index: { _index: 'words'} }, doc])
+             
         if(operations.length >= 1) {
             return client.bulk({refresh : true, operations})
         }

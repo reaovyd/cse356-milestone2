@@ -71,7 +71,7 @@ async function build() {
                 "mappings" : {
                     "properties" : {
                         "suggest" : {
-                            "type" : "text",
+                            "type" : "completion",
                         },
                     }
                 }
