@@ -34,7 +34,6 @@ class DatabaseIndexUpdater {
         })
         const operations = dataset.flatMap(doc => [{ index: { _index: 'documents', _id : doc.id} }, doc])
         if(operations.length >= 1) {
-	    console.log(dataset)
             return client.bulk({refresh : true, operations})
         }
         return Promise.resolve(undefined)

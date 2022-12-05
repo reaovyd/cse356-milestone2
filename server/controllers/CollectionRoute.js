@@ -14,6 +14,11 @@ const create = async(req, res) => {
         name : req.body.name
     })
     const savedDoc = await newDoc.save()
+    // await client.indices.refresh({ index: 'documents' })
+
+    res.send({
+        "id": savedDoc._id.toString() 
+    })
     await client.index({
         "index" : "documents",
         "id" : savedDoc._id.toString(),
@@ -24,11 +29,6 @@ const create = async(req, res) => {
         }
 
     })
-    // await client.indices.refresh({ index: 'documents' })
-
-    return {
-        "id": savedDoc._id.toString() 
-    }
 }
 const deleteFunc = async(req, res) => {
     if(!req.body.id) {

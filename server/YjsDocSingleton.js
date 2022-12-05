@@ -1,6 +1,6 @@
 const Document = require("./models/DocumentSchema")
 const Y = require("yjs")
-// const UPDATE_FACTOR_HP = 50
+//const UPDATE_FACTOR_HP = 100
 
 class YjsDocSingleton {
     constructor() {
@@ -110,9 +110,9 @@ class YjsDocSingleton {
 	    const updateConvert = new Uint8Array(updateData)
 	    const updateArray = this.yjs_doc_list[id]["update_array"]
 	    updateArray.push(updateConvert)
-	    // if(updateArray.length >= UPDATE_FACTOR_HP) {
-	    //     this.applyUpdate(id)
-	    // }
+	    //if(updateArray.length >= UPDATE_FACTOR_HP) {
+	    //    this.applyUpdate(id)
+	    //}
 	}
     }
     getYjsDocAsUpdate(id) {

@@ -1,8 +1,10 @@
 const fastify = require("fastify")
+require('events').EventEmitter.defaultMaxListeners = 300;
 const process = require("process")
 const fs = require("fs")
 const mongoose = require("mongoose")
 const cors = require("@fastify/cors")
+//const cors = require("cors")
 const {FastifySSEPlugin} = require("fastify-sse-v2");
 const MongoStore = require("connect-mongo")
 const userRoute = require("./controllers/UserRoute.js")
@@ -27,6 +29,7 @@ const secret = "e3ca82b3a76ca310030e9e0a72d75d6929d08f09ba38700dba4c835e31243a14
 require("dotenv").config()
 const PORT = process.env.NODE_ENV == "dev" ? process.env.DEV : process.env.PROD 
 const MONGO_INSTANCE = process.env.NODE_ENV == "prod" ? "209.151.154.134" : "127.0.0.1"
+console.log(MONGO_INSTANCE)
 
 async function build() {
     const app = fastify()
@@ -104,6 +107,7 @@ async function build() {
     await app.register(userRoute, { prefix: "users"})
 
     app.addHook('preHandler', (req, res, next) => {
+	// DEBUG console.log(req.query)
         if(!(req.url.startsWith("/home") || req.url.startsWith("/edit") || req.url.startsWith("/api") || req.url.startsWith("/collection") ||
 		req.url.startsWith("/media") || req.url.startsWith("/index"))){
             return next()
@@ -152,19 +156,10 @@ async function build() {
 build()
   .then(fastify => {
         console.log(`Server started on port ${PORT}`)
-        // process.on(process.env.NODE_ENV=="dev" ? "SIGUSR2" : "SIGINT", (code) => {
-        //     console.log("UPDATING ALL YJS DOCS TO DATABASES")
-        //     yds.applyUpdateToAll().then(res => {
-        //         diu.writeToAllDocs().then(res => {
-        //             diu.writeToElastic().then(res => {
-        //                 diu.writeToElasticSuggest().then(res => {
-        //                     fastify.close()
-        //                     process.exit(0)
-        //                 })
-        //             })
-        //         })      
-        //     })
-        // })
+	setInterval(() => {
+            diu.writeToElastic()
+        }, 1000) 
+
         return fastify.listen({ host : process.env.NODE_ENV == "dev" ? "127.0.0.1" : "209.94.58.45", port: PORT})
     })
   .catch(console.log)

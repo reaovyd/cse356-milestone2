@@ -1,4 +1,5 @@
 const User = require("../models/UserSchema")
+const axios = require("axios")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
 const YjsDocSingleton = require("../YjsDocSingleton")
@@ -42,6 +43,7 @@ const signup = async(req, res) => {
                 }
                 console.log(stderr)
         })
+	await axios.get(url)
       
 
         return {

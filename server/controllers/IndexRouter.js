@@ -3,10 +3,8 @@ const DatabaseIndexUpdater = require("../DatabaseIndexUpdater")
 const diu = new DatabaseIndexUpdater()
 
 const search = async(req, res) => {
-	console.log("search")
-	console.log(req.query)
+    console.log("QUERYAAAAAAAAAAAAAAAAAAA", req.query.q)
     if(req.query.q == undefined || req.query.q.length == 0) {
-	console.log("UNDEFINED UNDEFINED")
         return []
     }
     await diu.writeToElastic()
@@ -15,6 +13,7 @@ const search = async(req, res) => {
         query : {
             "multi_match" : {
                 "query" : req.query.q,
+		"type" : "phrase",
                 "fields" : ["name", "text"]
             },
         },
@@ -33,11 +32,13 @@ const search = async(req, res) => {
         },
         size : 10
     })
-	console.log(results.hits)
+    console.log(results.hits)
     if(results.hits.hits.length == 0) {
+	console.log(req.query.q, "NOTHING")
         return []
     } else {
         const ans = results.hits.hits.map(elem => {
+	    console.log("WE IN A LOOP", req.query.q, elem.highlight.text)
             const ret = {
                 docid : elem._id,
                 name : elem._source.name,
@@ -45,6 +46,7 @@ const search = async(req, res) => {
             }
             return ret
         })
+	console.log("THIS IS WHAT YOU'RE RETURNING", req.query.q, ans)
         return ans
     }
 }
